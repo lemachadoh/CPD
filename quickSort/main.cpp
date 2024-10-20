@@ -6,7 +6,7 @@
 #include "../utils.h"
 
 
-#define INPUT_FILE "o entrada-quicksort.txt"
+#define INPUT_FILE "entrada-quicksort.txt"
 #define OUTPUT_FILE "resultados.txt"
 
 int vetor[1000000];
