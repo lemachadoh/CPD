@@ -1,0 +1,6 @@
+tamanho,escolha-particionador,particionamento,trocas,recursoes,tempo 
+100,mediana3,hoare,356,134,0
+1000,mediana3,hoare,5356,1436,0
+10000,mediana3,hoare,70428,14554,2.001
+100000,mediana3,hoare,880282,146312,13.511
+1000000,mediana3,hoare,10472116,1464728,163.513

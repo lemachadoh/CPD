@@ -1,7 +1,7 @@
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include "utils.h"
-#include <iostream>  
 
 
 void lerArquivo(const std::string& nomeArquivo, int linha, int* numeros, int& numElementos) {

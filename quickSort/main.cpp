@@ -1,15 +1,13 @@
-#include "../utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <chrono>
 #include <time.h>
+#include "../utils.h"
 
-#define INPUT_FILE "entrada.txt"
-#define OUTPUT_MEDIAN_HOARE "stats-mediana-hoare.txt"
-#define OUTPUT_MEDIAN_LOMUTO "stats-mediana-lomuto.txt"
-#define OUTPUT_RANDOM_HOARE "stats-aleatorio-hoare.txt"
-#define OUTPUT_RANDOM_LOMUTO "stats-aleatorio-lomuto.txt"
+
+#define INPUT_FILE "o entrada-quicksort.txt"
+#define OUTPUT_FILE "resultados.txt"
 
 int vetor[1000000];
 int trocas, recursoes;
@@ -18,8 +16,17 @@ enum options{
     RANDOM_PIVOT,
     MEDIAN_PIVOT,
     LOMUTO,
-    HOARE
+    HOARE,
+    NUM_OPTIONS 
 };
+
+const std::string optionsStrings[NUM_OPTIONS] = {
+    "aleatorio",
+    "mediana3",
+    "lomuto",
+    "hoare"
+};
+
 
 void random_pivot(int* array, int inicio, int fim) {
     // Gerar um índice aleatório dentro do intervalo
@@ -43,6 +50,7 @@ void median_pivot(int* array, int inicio, int fim) {
         std::swap(array[inicio], array[fim]);
     }
 }
+
 int partition_lomuto(int C[], int left, int right){
     int chave = C[left];
     int storeindex = left + 1;  // Index of smaller element
@@ -61,6 +69,7 @@ int partition_lomuto(int C[], int left, int right){
 
     return (storeindex-1);
 }
+
 int partition_hoare(int C[], int left, int right) {
     int chave, i, j;
     chave = C[left]; i = left; j = right;
@@ -78,6 +87,7 @@ int partition_hoare(int C[], int left, int right) {
     C[j] = chave;
     return i;
 }
+
 void quicksort(int c[], int i, int f, enum options pivot_method, enum options partition_method){
     int p; //indice do pivo
     if(f > i){
@@ -118,15 +128,14 @@ void quicksort(int c[], int i, int f, enum options pivot_method, enum options pa
 }
 
 int main(){
-    int i, num_elementos;
-
-    /* PIVÔ MEDIANA DE 3, PARTICIONAMENTO POR MÉTODO DE HOARE */
+    int i, num_elementos, num_linha;
     
     i = 0;
     trocas = recursoes = i;
 
-    std::string file_dir = OUTPUT_MEDIAN_HOARE;
+    std::string file_dir = OUTPUT_FILE;
     std::ofstream output(file_dir, std::ios::app);
+    output << "tamanho,escolha-particionador,particionamento,trocas,recursoes,tempo \n"; 
 
     for(int num_linha = 1; num_linha < 6; num_linha++){
         lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
@@ -137,88 +146,13 @@ int main(){
 
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration<double, std::milli>(end - start);
-
-        output << "TAMANHO ENTRADA " << num_elementos << "\n";
-        output << "SWAPS " << trocas << "\n";
-        output << "RECURSOES " << recursoes << "\n";
-        output << "TEMPO " << duration.count() << "\n";
+        output << num_elementos << ","; // tamanho
+        output << optionsStrings[MEDIAN_PIVOT] << ","; //escolha-particionador(aleatorio, mediana3)
+        output << optionsStrings[HOARE] << ",";//particionamento (hoare, lomuto)
+        output << trocas << ","; //trocas
+        output << recursoes << ","; //recursoes
+        output << duration.count() << "\n"; //tempo
     }
 
     output.close();
-
-    /* PIVÔ MEDIANA DE 3, PARTICIONAMENTO POR MÉTODO DE LOMUTO */
-
-    i = 0;
-    trocas = recursoes = i;
-
-    file_dir = OUTPUT_MEDIAN_LOMUTO;
-    output.open(file_dir);
-
-    for(int num_linha = 1; num_linha < 6; num_linha++){
-        lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
-        
-        auto start = std::chrono::high_resolution_clock::now();
-
-        quicksort(vetor, i, num_elementos - 1, MEDIAN_PIVOT, LOMUTO);
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration<double, std::milli>(end - start);
-
-        output << "TAMANHO ENTRADA " << num_elementos << "\n";
-        output << "SWAPS " << trocas << "\n";
-        output << "RECURSOES " << recursoes << "\n";
-        output << "TEMPO " << duration.count() << "\n";
-    }
-
-    output.close();
-
-    /* PIVÔ ALEATÓRIO, PARTICIONAMENTO POR MÉTODO DE HOARE */
-
-    i = 0;
-    trocas = recursoes = i;
-
-    file_dir = OUTPUT_RANDOM_HOARE;
-    output.open(file_dir);
-
-    for(int num_linha = 1; num_linha < 6; num_linha++){
-        lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
-        
-        auto start = std::chrono::high_resolution_clock::now();
-
-        quicksort(vetor, i, num_elementos - 1, RANDOM_PIVOT, HOARE);
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration<double, std::milli>(end - start);
-
-        output << "TAMANHO ENTRADA " << num_elementos << "\n";
-        output << "SWAPS " << trocas << "\n";
-        output << "RECURSOES " << recursoes << "\n";
-        output << "TEMPO " << duration.count() << "\n";
-    }
-
-    output.close();
-
-    /* PIVÔ ALEATÓRIO, PARTICIONAMENTO POR MÉTODO DE LOMUTO */
-
-    i = 0;
-    trocas = recursoes = i;
-
-    file_dir = OUTPUT_RANDOM_LOMUTO;
-    output.open(file_dir);
-
-    for(int num_linha = 1; num_linha < 6; num_linha++){
-        lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
-        
-        auto start = std::chrono::high_resolution_clock::now();
-
-        quicksort(vetor, i, num_elementos - 1, RANDOM_PIVOT, LOMUTO);
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration<double, std::milli>(end - start);
-
-        output << "TAMANHO ENTRADA " << num_elementos << "\n";
-        output << "SWAPS " << trocas << "\n";
-        output << "RECURSOES " << recursoes << "\n";
-        output << "TEMPO " << duration.count() << "\n";
-    }
 }
