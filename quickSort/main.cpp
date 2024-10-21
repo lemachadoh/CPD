@@ -12,19 +12,27 @@
 int vetor[1000000];
 int trocas, recursoes;
 
-enum options{
-    RANDOM_PIVOT,
-    MEDIAN_PIVOT,
+enum particionamento{
     LOMUTO,
     HOARE,
     NUM_OPTIONS 
 };
 
-const std::string optionsStrings[NUM_OPTIONS] = {
-    "aleatorio",
-    "mediana3",
+enum escolhaPivot{
+    RANDOM_PIVOT,
+    MEDIAN_PIVOT,
+    NUM_ESCOLHA
+};
+
+
+const std::string particionamentoString[NUM_OPTIONS] = {
     "lomuto",
     "hoare"
+};
+
+const std::string escolhaString[NUM_OPTIONS] = {
+    "aleatorio",
+    "mediana3"
 };
 
 
@@ -88,7 +96,7 @@ int partition_hoare(int C[], int left, int right) {
     return i;
 }
 
-void quicksort(int c[], int i, int f, enum options pivot_method, enum options partition_method){
+void quicksort(int c[], int i, int f, enum escolhaPivot pivot_method, enum particionamento partition_method){
     int p; //indice do pivo
     if(f > i){
         switch(pivot_method){
@@ -135,23 +143,31 @@ int main(){
 
     std::string file_dir = OUTPUT_FILE;
     std::ofstream output(file_dir, std::ios::app);
-    output << "tamanho,escolha-particionador,particionamento,trocas,recursoes,tempo \n"; 
+    output << "tamanho,escolhaPivot-particionador,particionamento,trocas,recursoes,tempo \n"; 
 
     for(int num_linha = 1; num_linha < 6; num_linha++){
         lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
         
         auto start = std::chrono::high_resolution_clock::now();
+        
+        for (int escolhaPivot = 0; escolhaPivot < NUM_ESCOLHA; escolhaPivot++) {
+            for (int particionamento = 0; particionamento < NUM_OPTIONS; particionamento++) {
 
-        quicksort(vetor, i, num_elementos - 1, MEDIAN_PIVOT, HOARE);
+                quicksort(vetor, 0, num_elementos - 1, (enum escolhaPivot)escolhaPivot, (enum particionamento)particionamento);
 
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration<double, std::milli>(end - start);
-        output << num_elementos << ","; // tamanho
-        output << optionsStrings[MEDIAN_PIVOT] << ","; //escolha-particionador(aleatorio, mediana3)
-        output << optionsStrings[HOARE] << ",";//particionamento (hoare, lomuto)
-        output << trocas << ","; //trocas
-        output << recursoes << ","; //recursoes
-        output << duration.count() << "\n"; //tempo
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration<double, std::milli>(end - start);
+                
+                output << num_elementos << ","; // tamanho
+                output << escolhaString[escolhaPivot] << ","; //escolhaPivot-particionador(aleatorio, mediana3)
+                output << particionamentoString[particionamento] << ",";//particionamento (hoare, lomuto)
+                output << trocas << ","; //trocas
+                output << recursoes << ","; //recursoes
+                output << duration.count() << "\n"; //tempo
+
+                printf("escolhaPivot %d particionamento %d \n", escolhaPivot, particionamento);
+            }
+        }
     }
 
     output.close();

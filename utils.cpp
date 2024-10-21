@@ -17,9 +17,9 @@ void lerArquivo(const std::string& nomeArquivo, int linha, int* numeros, int& nu
                 for (int j = 0; j < numElementos; ++j) {
                     iss >> numeros[j]; // Lê os números subsequentes
                 }
+                std::cout << "Linha " << linha << " lida com " << numElementos << " elementos." << std::endl;
             }
         }
-        //std::cout << "Sucesso na leitura do arquivo.\n";
         arquivo.close();
     } else {
         std::cerr << "Erro ao abrir o arquivo: " << nomeArquivo << std::endl;
