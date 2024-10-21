@@ -2,170 +2,148 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
-#include <time.h>
+#include <ctime>
 #include "../utils.h"
-
 
 #define INPUT_FILE "entrada-quicksort.txt"
 #define OUTPUT_FILE "resultados.txt"
 
-int vetor[1000000];
+int vetor[1000000]; 
 int trocas, recursoes;
 
-enum particionamento{
+enum MetodoParticionamento {
     LOMUTO,
     HOARE,
-    NUM_OPTIONS 
+    NUM_OPTIONS
 };
 
-enum escolhaPivot{
+enum MetodoEscolhaPivo {
     RANDOM_PIVOT,
     MEDIAN_PIVOT,
-    NUM_ESCOLHA
+    NUM_SELECTION
 };
-
 
 const std::string particionamentoString[NUM_OPTIONS] = {
     "lomuto",
     "hoare"
 };
 
-const std::string escolhaString[NUM_OPTIONS] = {
+const std::string escolhaPivoString[NUM_SELECTION] = {
     "aleatorio",
     "mediana3"
 };
 
-
-void random_pivot(int* array, int inicio, int fim) {
-    // Gerar um índice aleatório dentro do intervalo
-    srand(time(NULL));
-    int randomIndex = rand() % (fim - inicio + 1) + inicio;
-
-    // Trocar o valor aleatório com o primeiro valor do subarray
-    std::swap(array[inicio], array[randomIndex]);
+// Função para selecionar pivô aleatório
+void pivoAleatorio(int* arr, int inicio, int fim) {
+    int indiceAleatorio = rand() % (fim - inicio + 1) + inicio;
+    std::swap(arr[inicio], arr[indiceAleatorio]);
 }
 
-void median_pivot(int* array, int inicio, int fim) {
-    // Encontrar o índice médio
-    int indiceMedio = (inicio + fim) / 2;
-
-    // Encontrar o valor mediano
-    if (array[inicio] <= array[indiceMedio] && array[inicio] >= array[fim]) {
-        
-    } else if (array[indiceMedio] <= array[inicio] && array[indiceMedio] >= array[fim]) {
-        std::swap(array[inicio], array[indiceMedio]);
-    } else {
-        std::swap(array[inicio], array[fim]);
-    }
+// Função de escolha de pivô pela mediana de três
+void medianaDeTres(int* arr, int inicio, int fim) {
+    int meio = (inicio + fim) / 2;
+    // Ordena os três elementos e posiciona a mediana no início
+    if (arr[inicio] > arr[meio]) std::swap(arr[inicio], arr[meio]);
+    if (arr[inicio] > arr[fim]) std::swap(arr[inicio], arr[fim]);
+    if (arr[meio] > arr[fim]) std::swap(arr[meio], arr[fim]);
+    std::swap(arr[inicio], arr[meio]); // Coloca a mediana no início
 }
 
-int partition_lomuto(int C[], int left, int right){
-    int chave = C[left];
-    int storeindex = left + 1;  // Index of smaller element
-
-    for (int i = left+1; i <= right; i++){
-        // If current element is smaller than or
-        // equal to pivot
-        if (C[i] < chave){
-            std::swap(C[i], C[storeindex]);
+// Particionamento de Lomuto
+int particionamentoLomuto(int arr[], int esquerda, int direita) {
+    int pivo = arr[esquerda];
+    int indiceMenor = esquerda + 1;
+    for (int i = esquerda + 1; i <= direita; i++) {
+        if (arr[i] < pivo) {
+            std::swap(arr[i], arr[indiceMenor]);
             trocas++;
-            storeindex++;    // increment index of smaller element
+            indiceMenor++;
         }
     }
-    std::swap(C[left], C[storeindex-1]);
+    std::swap(arr[esquerda], arr[indiceMenor - 1]);
     trocas++;
-
-    return (storeindex-1);
+    return indiceMenor - 1;
 }
 
-int partition_hoare(int C[], int left, int right) {
-    int chave, i, j;
-    chave = C[left]; i = left; j = right;
+// Particionamento de Hoare corrigido
+int particionamentoHoare(int arr[], int esquerda, int direita) {
+    int pivo = arr[esquerda];
+    int i = esquerda, j = direita;
 
-    while (i<j) {
-        //cout << "\nloop = " << loopcount++ << "i - " << i << " j = " << j << endl;
-        while(C[j] > chave && i < j) j--;
-        C[i] = C[j]; 
+    while (i < j) {
+        while (arr[j] > pivo && i < j) j--;
+        arr[i] = arr[j];
         trocas++;
-        while(C[i] <= chave && i < j) i++ ;
-        C[j] = C[i];
+        while (arr[i] <= pivo && i < j) i++;
+        arr[j] = arr[i];
         trocas++;
     }
-
-    C[j] = chave;
-    return i;
+    arr[j] = pivo;
+    return j; // Retorna 'j' corretamente, não 'i'
 }
 
-void quicksort(int c[], int i, int f, enum escolhaPivot pivot_method, enum particionamento partition_method){
-    int p; //indice do pivo
-    if(f > i){
-        switch(pivot_method){
+// Função de Quicksort corrigida
+void quicksort(int arr[], int inicio, int fim, MetodoEscolhaPivo metodoPivo, MetodoParticionamento metodoParticionamento) {
+    if (fim > inicio) {
+        int indicePivo;
+        
+        // Escolha do método de pivô
+        switch (metodoPivo) {
             case RANDOM_PIVOT:
-            random_pivot(c, i, f);
-            break;
-
+                pivoAleatorio(arr, inicio, fim);
+                break;
             case MEDIAN_PIVOT:
-            median_pivot(c, i, f);
-            break;
-
-            default:
-            std::cerr << "Opção de pivotamento inválida.\n";
-            break;
+                medianaDeTres(arr, inicio, fim);
+                break;
         }
 
-        switch(partition_method){
+        // Escolha do método de particionamento
+        switch (metodoParticionamento) {
             case LOMUTO:
-            p = partition_lomuto(c, i, f);
-            break;
-
+                indicePivo = particionamentoLomuto(arr, inicio, fim);
+                break;
             case HOARE:
-            p = partition_hoare(c, i, f);
-            break;
-            
-            default:
-            std::cerr << "Opção de particionamento inválida.\n";
-            break;
+                indicePivo = particionamentoHoare(arr, inicio, fim);
+                break;
         }
 
-        //p = particiona(c, i, f);
-        quicksort(c, i, p-1, pivot_method, partition_method);
+        // Recursão para ordenar as duas sublistas
+        quicksort(arr, inicio, indicePivo - 1, metodoPivo, metodoParticionamento);
         recursoes++;
-        quicksort(c, p+1, f, pivot_method, partition_method);
+        quicksort(arr, indicePivo + 1, fim, metodoPivo, metodoParticionamento);
         recursoes++;
     }
 }
 
-int main(){
-    int i, num_elementos, num_linha;
-    
-    i = 0;
-    trocas = recursoes = i;
+int main() {
+    srand(time(NULL)); // Inicializa o gerador de números aleatórios uma única vez
 
-    std::string file_dir = OUTPUT_FILE;
-    std::ofstream output(file_dir, std::ios::app);
-    output << "tamanho,escolhaPivot-particionador,particionamento,trocas,recursoes,tempo \n"; 
+    int elementos, linha;
+    trocas = recursoes = 0;
 
-    for(int num_linha = 1; num_linha < 6; num_linha++){
-        lerArquivo(INPUT_FILE, num_linha, vetor, num_elementos);
-        
-        auto start = std::chrono::high_resolution_clock::now();
-        
-        for (int escolhaPivot = 0; escolhaPivot < NUM_ESCOLHA; escolhaPivot++) {
-            for (int particionamento = 0; particionamento < NUM_OPTIONS; particionamento++) {
+    std::ofstream output(OUTPUT_FILE, std::ios::app);
+    output << "tamanho,escolhaPivo,particionamento,trocas,recursoes,tempo \n"; 
 
-                quicksort(vetor, 0, num_elementos - 1, (enum escolhaPivot)escolhaPivot, (enum particionamento)particionamento);
-
-                auto end = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration<double, std::milli>(end - start);
+    for (int linha = 1; linha < 6; linha++) {
+        for (int metodoPivo = 0; metodoPivo < NUM_SELECTION; metodoPivo++) {
+            for (int metodoParticionamento = 0; metodoParticionamento < NUM_OPTIONS; metodoParticionamento++) {
                 
-                output << num_elementos << ","; // tamanho
-                output << escolhaString[escolhaPivot] << ","; //escolhaPivot-particionador(aleatorio, mediana3)
-                output << particionamentoString[particionamento] << ",";//particionamento (hoare, lomuto)
-                output << trocas << ","; //trocas
-                output << recursoes << ","; //recursoes
-                output << duration.count() << "\n"; //tempo
+                trocas = recursoes = 0;
+                lerArquivo(INPUT_FILE, linha, vetor, elementos);
 
-                printf("escolhaPivot %d particionamento %d \n", escolhaPivot, particionamento);
+                auto inicio = std::chrono::high_resolution_clock::now();
+
+                quicksort(vetor, 0, elementos - 1, (MetodoEscolhaPivo)metodoPivo, (MetodoParticionamento)metodoParticionamento);
+
+                auto fim = std::chrono::high_resolution_clock::now();
+                auto duracao = std::chrono::duration<double, std::milli>(fim - inicio);
+
+                output << elementos << ",";
+                output << escolhaPivoString[metodoPivo] << ",";
+                output << particionamentoString[metodoParticionamento] << ",";
+                output << trocas << ",";
+                output << recursoes << ",";
+                output << duracao.count() << "\n";
             }
         }
     }
