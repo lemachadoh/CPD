@@ -11,7 +11,7 @@
 #include <iomanip>
 
 #define PLAYERS_DIR     "arquivos-parte1//players.csv"  
-#define RATING_DIR      "arquivos-parte1//minirating.csv" //"arquivos-parte1//minirating.csv"
+#define RATING_DIR      "rating20M/rating.csv"//"arquivos-parte1//minirating.csv"
 #define TAGS_DIR        "arquivos-parte1//tags.csv"
 
 #define ID_FIELD_WIDTH      6
@@ -27,14 +27,14 @@
 using namespace std;
 
 // Estruturas de dados
-struct Player {
+struct Jogador {
     int id;
     string short_name;
     string long_name;
-    string player_positions;
-    string nationality;
-    string club_name;
-    string league_name;
+    string jogador_posicoes;
+    string nacionalidade;
+    string clube_name;
+    string ligas;
     int total_ratings = 0;
     float rating = 0; 
 };
@@ -44,22 +44,22 @@ struct Rating {
     float rating;
 };
 
-struct User {
+struct Usuario {
     int id;
-    vector<Rating> user_ratings;
+    vector<Rating> usuario_ratings;
 };
 
 
-void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, string player_dir, string rating_dir){
+void buildHash(tabelaHash<Jogador> &playersHash, tabelaHash<Usuario> &usuariosHash, string jogador_dir, string rating_dir){
     
     using namespace aria::csv;
 
-    std::ifstream f(player_dir);
+    std::ifstream f(jogador_dir);
     std::ifstream g(rating_dir);
 
-    Player oPlayer;
+    Jogador oJogador;
 
-    cout << "Processando " << player_dir << "... ";
+    cout << "Processando " << jogador_dir << "... ";
     CsvParser parser(f);
 
     for(auto& row : parser){
@@ -72,40 +72,40 @@ void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, strin
         }
 
         // Field 1: sofifa_id
-        oPlayer.id = stoi(*field.data);
+        oJogador.id = stoi(*field.data);
 
         // Field 2: short_name
         field = parser.next_field();
-        oPlayer.short_name = *field.data;
+        oJogador.short_name = *field.data;
 
         // Field 3: long_name
         field = parser.next_field();
-        oPlayer.long_name = *field.data;
+        oJogador.long_name = *field.data;
 
-        // Field 4: player_positions
+        // Field 4: jogador_posicoes
         field = parser.next_field();
-        oPlayer.player_positions = *field.data;
+        oJogador.jogador_posicoes = *field.data;
 
-        // Field 5: nationality
+        // Field 5: nacionalidade
         field = parser.next_field();
-        oPlayer.nationality = *field.data;
+        oJogador.nacionalidade = *field.data;
 
-        // Field 6: club_name
+        // Field 6: clube_name
         field = parser.next_field();
-        oPlayer.club_name = *field.data;
+        oJogador.clube_name = *field.data;
 
-        // Field 7: league_name
+        // Field 7: ligas
         field = parser.next_field();
-        oPlayer.league_name = *field.data;
+        oJogador.ligas = *field.data;
 
-        hashInsert(playersHash, oPlayer);
+        insercaoHash(playersHash, oJogador);
     }
 
     cout << "Pronto. \nProcessando " << rating_dir << "... ";
     CsvParser parser_ratings(g);
 
     for(auto& row : parser_ratings){
-        User oUser;
+        Usuario oUsuario;
         Rating oRating;
 
         auto field = parser_ratings.next_field();
@@ -116,8 +116,8 @@ void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, strin
                 break; 
         }
 
-        // Field 1: user_id
-        oUser.id = stoi(*field.data);
+        // Field 1: usuario_id
+        oUsuario.id = stoi(*field.data);
 
         // Field 2: sofifa_id
         field = parser_ratings.next_field();
@@ -127,25 +127,25 @@ void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, strin
         field = parser_ratings.next_field();
         oRating.rating = stof(*field.data);
 
-        User* userptr = nullptr;
+        Usuario* usuarioPtr = nullptr;
 
-        hashSearch(usersHash, oUser.id, userptr);
+        pesquisaHash(usuariosHash, oUsuario.id, usuarioPtr);
 
-        if(userptr) userptr->user_ratings.push_back(oRating); // Se o usuario ja existe, apenas adiciona o novo rating.
+        if(usuarioPtr) usuarioPtr->usuario_ratings.push_back(oRating); // Se o usuario ja existe, apenas adiciona o novo rating.
         else{
-            hashInsert(usersHash, oUser); // Se usuario n existe/indice vazio, cria novo usuario e insere rating.
-            hashSearch(usersHash, oUser.id, userptr);
-            userptr->user_ratings.push_back(oRating);
+            insercaoHash(usuariosHash, oUsuario); // Se usuario n existe/indice vazio, cria novo usuario e insere rating.
+            pesquisaHash(usuariosHash, oUsuario.id, usuarioPtr);
+            usuarioPtr->usuario_ratings.push_back(oRating);
         }
 
-        Player* playerptr = nullptr;
+        Jogador* jogadorPtr = nullptr;
 
-        // Pesquisa jogador no Player Hash e incrementa 'total ratings' e 'avg rating'.
-        hashSearch(playersHash, oRating.id, playerptr);
+        // Pesquisa jogador no Jogador Hash e incrementa 'total ratings' e 'avg rating'.
+        pesquisaHash(playersHash, oRating.id, jogadorPtr);
 
-        if(playerptr){
-            playerptr->total_ratings++;
-            playerptr->rating = oRating.rating + playerptr->rating;
+        if(jogadorPtr){
+            jogadorPtr->total_ratings++;
+            jogadorPtr->rating = oRating.rating + jogadorPtr->rating;
         }
     }
 
@@ -153,11 +153,11 @@ void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, strin
     cout << "Calculando media para cada jogador baseando-se nas avaliacoes de usuarios... ";
     
 
-    // Re-itera player hash e calcula nota media de cada jogador.
-    for(int i = 0; i < playersHash.table.size(); ++i){
-        if(!playersHash.table[i].empty()){
-            for(auto &player : playersHash.table[i]){
-                if(player.rating != 0) player.rating = (float) player.rating/player.total_ratings;
+    // Re-itera jogador hash e calcula nota media de cada jogador.
+    for(int i = 0; i < playersHash.tabela.size(); ++i){
+        if(!playersHash.tabela[i].empty()){
+            for(auto &jogador : playersHash.tabela[i]){
+                if(jogador.rating != 0) jogador.rating = (float) jogador.rating/jogador.total_ratings;
             }
         }
     }
@@ -165,11 +165,11 @@ void buildHash(HashTable<Player> &playersHash, HashTable<User> &usersHash, strin
     cout << "Pronto." << endl;
 }
 
-void buildPlayerTrie(HashTable<Player> &playersHash, Trie &playerNames){
-        for(int i =0; i< playersHash.table.size();i++){
-        if(!playersHash.table[i].empty()){
-            for(const auto &player : playersHash.table[i]){
-                playerNames.insert(player.short_name, player.id);
+void buildJogadorTrie(tabelaHash<Jogador> &playersHash, Trie &playerNames){
+        for(int i =0; i< playersHash.tabela.size();i++){
+        if(!playersHash.tabela[i].empty()){
+            for(const auto &jogador : playersHash.tabela[i]){
+                playerNames.insert(jogador.short_name, jogador.id);
             }
         }
     }
@@ -196,7 +196,7 @@ void buildTagsTrie(string tags_dir, Trie &playerTags){
                 break; 
         }
 
-        // Field 1: user_id [pula, não usado]
+        // Field 1: usuario_id [pula, não usado]
 
         // Field 2: sofifa_id
         field = parser.next_field();
@@ -221,52 +221,52 @@ void printVector(vector<T> &V){
 
 // Merge da função do mergesort, ordena baseado em rating.
 template <typename T>
-void merge(vector<T> &vec, int left, int mid, int right){
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
+void merge(vector<T> &vec, int esqr, int mid, int dir){
+    int n1 = mid - esqr + 1;
+    int n2 = dir - mid;
 
-    vector<T> leftVec(n1);
-    vector<T> rightVec(n2);
+    vector<T> esqrVec(n1);
+    vector<T> dirVec(n2);
 
     for (int i = 0; i < n1; ++i)
-        leftVec[i] = vec[left + i];
+        esqrVec[i] = vec[esqr + i];
     for (int i = 0; i < n2; ++i)
-        rightVec[i] = vec[mid + 1 + i];
+        dirVec[i] = vec[mid + 1 + i];
 
-    int i = 0, j = 0, k = left;
+    int i = 0, j = 0, k = esqr;
     while (i < n1 && j < n2) {
-        if (leftVec[i].rating >= rightVec[j].rating) {
-            vec[k] = leftVec[i];
+        if (esqrVec[i].rating >= dirVec[j].rating) {
+            vec[k] = esqrVec[i];
             ++i;
         } else {
-            vec[k] = rightVec[j];
+            vec[k] = dirVec[j];
             ++j;
         }
         ++k;
     }
 
     while (i < n1) {
-        vec[k] = leftVec[i];
+        vec[k] = esqrVec[i];
         ++i;
         ++k;
     }
 
     while (j < n2) {
-        vec[k] = rightVec[j];
+        vec[k] = dirVec[j];
         ++j;
         ++k;
     }
 }
 
 template <typename T>
-void mergeSort(vector<T> &vec, int left, int right){
-    if (left < right) {
-        int mid = left + (right - left) / 2;
+void mergeSort(vector<T> &vec, int esqr, int dir){
+    if (esqr < dir) {
+        int mid = esqr + (dir - esqr) / 2;
 
-        mergeSort(vec, left, mid);
-        mergeSort(vec, mid + 1, right);
+        mergeSort(vec, esqr, mid);
+        mergeSort(vec, mid + 1, dir);
 
-        merge(vec, left, mid, right);
+        merge(vec, esqr, mid, dir);
     }
 }
 
