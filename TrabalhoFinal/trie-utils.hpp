@@ -12,7 +12,7 @@ class TrieNode {
 public:
     std::vector<TrieNode*> children;
     bool isEndOfWord;
-    std::vector<int> values; // Vetor para armazenar os valores associados ao nodo folha.
+    std::vector<int> vals; // Vetor para armazenar os valores associados ao nodo folha.
 
     TrieNode() : children(128, nullptr), isEndOfWord(false) {}
 };
@@ -38,7 +38,7 @@ private:
     void collectValues(TrieNode* node, vector<int>& result) {
         // Se for o nodo final, insere resultados no vetor.
         if (node->isEndOfWord) {
-            result.insert(result.end(), node->values.begin(), node->values.end());
+            result.insert(result.end(), node->vals.begin(), node->vals.end());
         }
         // Para cada nodo filho, coletar os valores. Chamada recursiva.
         for (TrieNode* child : node->children) {
@@ -53,9 +53,9 @@ public:
         root = new TrieNode();
     }
 
-    void insert(const string& word, int value) {
+    void insert(const string& palavra, int value) {
         // Normaliza o input em letras minusculas.
-        string lowerWord = toLowerCase(word);
+        string lowerWord = toLowerCase(palavra);
         TrieNode* node = root;
 
         // Percorre a trie e cria nodos caso necessário.
@@ -72,16 +72,16 @@ public:
         node->isEndOfWord = true;
 
         // Certifica-se de que o valor é único antes de adicioná-lo.
-        if (find(node->values.begin(), node->values.end(), value) == node->values.end()) {
-            node->values.push_back(value);
+        if (find(node->vals.begin(), node->vals.end(), value) == node->vals.end()) {
+            node->vals.push_back(value);
         }
     }
 
     // Busca de string exata na trie. Recebe a string a ser buscada e um vector que
     // será povoado com os dados satélites nas folhas do nó.
-    bool search(const string& word, vector<int>& values) {
+    bool search(const string& palavra, vector<int>& vals) {
         // Normaliza o input em minúsculas.
-        std::string lowerWord = toLowerCase(word);
+        std::string lowerWord = toLowerCase(palavra);
         TrieNode* node = root;
 
         // Percorre a trie, caso encontre null pointer, a palavra não está presente.
@@ -92,7 +92,7 @@ public:
             node = node->children[ch]; // Passa ao próximo nó.
         }
         if (node->isEndOfWord) {
-            values = node->values; // Retorna os valores caso encontre a palavra.
+            vals = node->vals; // Retorna os valores caso encontre a palavra.
             return true;
         }
         return false;
@@ -101,7 +101,7 @@ public:
     // Busca de prefixo. Utiliza chamadas recursivas de 'collectValues' para retornar
     // todos os dados satélites de strings que contém o prefixo desejado.
     // Recebe o prefixo e um vetor que receberá os dados por referência.
-    bool startsWith(const string& prefix, vector<int>& values) {
+    bool startsWith(const string& prefix, vector<int>& vals) {
         string lowerPrefix = toLowerCase(prefix);
         TrieNode* node = root;
         for (char ch : lowerPrefix) {
@@ -110,8 +110,8 @@ public:
             }
             node = node->children[ch];
         }
-        collectValues(node, values);
-        return !values.empty();
+        collectValues(node, vals);
+        return !vals.empty();
     }
 };
 
