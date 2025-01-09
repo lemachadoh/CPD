@@ -66,10 +66,10 @@ int main(){
 
     cout << "Processo finalizado em "<< duration.count() << " segundos.\n" << endl;
 
-    cout << "Menu: \n1. <prefixo>\tPrefixos de nomes de jogadores\n2. <usuario>\tJogadores revisados por usuarios\n3. <top>\tTop jogadores de determinada posicao\n4. <tags>\tJogadores contendo x tags\n5. Sair\n"<< endl;
 
     // Menu
     while(!quit){
+            cout << "Menu: \n1. <prefixo>\tPrefixos de nomes de jogadores\n2. <usuario>\tJogadores revisados por usuarios\n3. <top>\tTop jogadores de determinada posicao\n4. <tags>\tJogadores contendo x tags\n5. Sair\n"<< endl;
         cout << "Digite a pesquisa desejada: ";
         getline(cin, input);
         istringstream iss(input);
